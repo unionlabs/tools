@@ -66,9 +66,11 @@
                   taplo
                   biome
                   typos
+                  procs
                   direnv
                   deadnix
                   nixfmt-rfc-style
+                  nodePackages_latest.nodejs
                 ];
               }
             ];

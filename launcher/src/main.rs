@@ -1,45 +1,128 @@
 use std::{
-    env,
+    collections::HashMap,
     io::{BufRead, BufReader},
     process::Stdio,
+    sync::{Arc, Mutex},
     thread,
 };
 
+#[derive(Debug)]
+struct FlagConfig<'a> {
+    name: &'a str,
+    default: Option<&'a str>,
+    required: bool,
+}
+
 fn main() {
-    let repository_absolute_path = env::var("REPOSITORY_ABSOLUTE_PATH").unwrap_or_else(|_| {
-        eprintln!(
-            "\n{}\n{}\n\n{}",
-            colorize("REPOSITORY_ABSOLUTE_PATH is empty.", "red"),
-            colorize(
-                "Set it to the absolute path of the repository by running:",
-                "yellow"
+    // check if `--help` flag is passed
+    if std::env::args().any(|arg| arg == "--help") {
+        println!(
+            "\n{0} {1} {2}",
+            text_effect("Usage:", "bold"),
+            text_effect("launcher", "bold"),
+            text_effect("[flags]", "bold")
+        );
+        println!("\n{0}", text_effect("Flags:", "bold"));
+        println!(
+            "  {0} {1} {2}",
+            text_effect("--port=<port>", "green"),
+            text_effect(" Port on which the vscode server will run", "italic"),
+            text_effect("    [default: 6699]", "yellow")
+        );
+        println!(
+            "  {0} {1} {2}",
+            text_effect("--path=<path>", "green"),
+            text_effect(" Repository to launch in vscode", "italic"),
+            text_effect("              [default: pwd]", "yellow")
+        );
+        println!(
+            "  {0} {1} {2}",
+            text_effect("--host=<host>", "green"),
+            text_effect(" Host on which the vscode server will run", "italic"),
+            text_effect("    [default: 127.0.0.1]", "yellow")
+        );
+        println!(
+            "  {0} {1} {2}",
+            text_effect("--open", "green"),
+            text_effect(
+                "        Launch vscode server in the default browser",
+                "italic"
             ),
-            colorize(
-                "export REPOSITORY_ABSOLUTE_PATH=/path/to/repository",
-                "green"
+            text_effect(" [default: false]", "yellow")
+        );
+        println!(
+            "  {0} {1}",
+            text_effect("--help", "green"),
+            text_effect("        Print this help message", "italic")
+        );
+        println!("\n{0}", text_effect("Example:", "bold"));
+        println!(
+            "  {0} {1}",
+            text_effect("launcher", "cyan"),
+            text_effect(
+                "--path=/path/to/repo --port=6699 --host=localhost --open",
+                "blue"
             )
         );
-        std::process::exit(1);
-    });
+        std::process::exit(0);
+    }
 
-    let command_array = vec![
-        "run",
-        "github:nixos/nixpkgs/nixpkgs-unstable#openvscode-server",
-        "--",
-        "--port=6699",
-        "--host=127.0.0.1",
-        "--update-extensions",
-        "--disable-telemetry",
-        "--accept-server-license-terms",
-        "--start-server",
+    // parse the cli args
+    let flag_configs = &[
+        FlagConfig {
+            name: "--path",
+            default: Some("."),
+            required: false,
+        },
+        FlagConfig {
+            name: "--port",
+            default: Some("6699"),
+            required: false,
+        },
+        FlagConfig {
+            name: "--host",
+            default: Some("127.0.0.1"),
+            required: false,
+        },
+        FlagConfig {
+            name: "--open",
+            default: Some("false"),
+            required: false,
+        },
     ];
+
+    let (open_arg, path_arg, port_arg, host_arg) = match parse_args(flag_configs) {
+        Ok((parsed_flags, _other_args)) => (
+            parsed_flags.get("--open").unwrap().clone(),
+            parsed_flags.get("--path").unwrap().clone(),
+            parsed_flags.get("--port").unwrap().clone(),
+            parsed_flags.get("--host").unwrap().clone(),
+        ),
+        Err(err) => {
+            eprintln!("\n{}", text_effect(&err, "red"));
+            std::process::exit(1);
+        }
+    };
+
     let mut command = std::process::Command::new("nix");
-    command.args(command_array);
+    command
+        .arg("run")
+        .arg("github:nixos/nixpkgs/nixpkgs-unstable#openvscode-server")
+        .arg("--")
+        .arg(format!("--port={}", port_arg))
+        .arg(format!("--host={}", host_arg))
+        .args(&[
+            "--update-extensions",
+            "--disable-telemetry",
+            "--accept-server-license-terms",
+            "--start-server",
+        ]);
+
     let mut child = command
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
         .spawn()
-        .unwrap();
+        .expect("Failed to spawn command");
 
     let child_stdout = child
         .stdout
@@ -50,9 +133,11 @@ fn main() {
         .take()
         .expect("Internal error, could not take stderr");
 
-    let (stdout_tx, _) = std::sync::mpsc::channel();
     let (stderr_tx, stderr_rx) = std::sync::mpsc::channel();
 
+    let wait_group = Arc::new(Mutex::new(()));
+
+    // This is where thread spawning begins
     let stdout_thread = thread::spawn(move || {
         let stdout_lines = BufReader::new(child_stdout).lines();
         for line in stdout_lines {
@@ -64,25 +149,18 @@ fn main() {
             // extracting the `tkn` part
             let token = line.split("tkn=").collect::<Vec<&str>>()[1];
             let repo_vscode_url = format!(
-                "http://127.0.0.1:6699?tkn={}&folder={}",
-                token, repository_absolute_path
+                "http://{}:{}?tkn={}&folder={}",
+                host_arg, port_arg, token, path_arg,
             );
 
-            println!("");
-            println!("{}", repo_vscode_url);
+            println!("\n{}", repo_vscode_url);
 
-            // check if user passed the `--open` flag
-            let args: Vec<String> = env::args().collect();
-            if args.len() > 1 && args[1] == "--open" {
-                println!("Opening the vscode url in the default browser...");
-                // open the vscode url in the default browser
-                let _ = std::process::Command::new("open")
+            if open_arg == "true" {
+                let _ = std::process::Command::new("xdg-open")
                     .arg(repo_vscode_url)
-                    .output()
-                    .expect("Failed to open the vscode url in the default browser");
+                    .spawn()
+                    .expect("Failed to open browser");
             }
-
-            stdout_tx.send(line).unwrap();
         }
     });
 
@@ -94,27 +172,76 @@ fn main() {
             stderr_tx.send(line).unwrap();
         }
     });
-
     stdout_thread.join().unwrap();
     stderr_thread.join().unwrap();
 
-    let stderr = stderr_rx.into_iter().collect::<Vec<String>>().join("");
-    // if stderr is not empty, print it and exit
+    drop(wait_group); // block until both threads have finished
+
+    let stderr = stderr_rx.iter().collect::<Vec<String>>().join("\n");
     if !stderr.is_empty() {
         eprintln!("stderr: {}", stderr);
         std::process::exit(1);
     }
 }
 
-fn colorize(text: &str, color: &str) -> String {
-    let color_code = match color.to_lowercase().as_str() {
+fn parse_args(
+    flag_configs: &[FlagConfig],
+) -> Result<(HashMap<String, String>, Vec<String>), String> {
+    let args: Vec<String> = std::env::args().skip(1).collect();
+    let mut parsed_flags = HashMap::new();
+    let mut other_args = Vec::new();
+
+    // Initialize with defaults and check for required flags
+    for config in flag_configs {
+        if let Some(default) = config.default {
+            parsed_flags.insert(config.name.to_string(), default.to_string());
+        }
+    }
+
+    for arg in args {
+        let mut matched = false;
+        for config in flag_configs {
+            if arg.starts_with(&format!("{}=", config.name)) {
+                let value = arg
+                    .trim_start_matches(&format!("{}=", config.name))
+                    .to_string();
+                parsed_flags.insert(config.name.to_string(), value);
+                matched = true;
+                break;
+            }
+        }
+        if !matched {
+            other_args.push(arg);
+        }
+    }
+
+    // Check if all required flags are provided
+    for config in flag_configs {
+        if config.required && !parsed_flags.contains_key(config.name) {
+            return Err(format!("Required flag '{}' is missing", config.name));
+        }
+    }
+
+    Ok((parsed_flags, other_args))
+}
+
+fn text_effect(text: &str, effect: &str) -> String {
+    let effect_code = match effect.to_lowercase().as_str() {
         "red" => "31",
         "green" => "32",
         "yellow" => "33",
         "blue" => "34",
         "magenta" => "35",
         "cyan" => "36",
+        "white" => "37",
+        "bold" => "1",
+        "italic" => "3",
+        "underline" => "4",
+        "blink" => "5",
+        "inverse" => "7",
+        "hidden" => "8",
+        "strikethrough" => "9",
         _ => "0", // default to no color
     };
-    format!("\x1b[1;{}m{}\x1b[0m", color_code, text)
+    format!("\x1b[1;{}m{}\x1b[0m", effect_code, text)
 }

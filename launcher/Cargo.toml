@@ -6,8 +6,6 @@ version = "0.1.0"
 description = "Launches vscode server in the browser"
 
 [dependencies]
-clap = "4.5.21"
-regex = "1.11.1"
 
 [lints]
 workspace = true
