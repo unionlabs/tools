@@ -1,113 +1,64 @@
 use std::{
-    collections::HashMap,
     io::{BufRead, BufReader},
     process::Stdio,
     sync::{Arc, Mutex},
     thread,
 };
 
-use colored::Colorize;
+use clap::{Command, arg, builder::styling};
 
-#[derive(Debug)]
-struct FlagConfig<'a> {
-    name: &'a str,
-    default: Option<&'a str>,
-    required: bool,
-}
+const STYLES: styling::Styles = styling::Styles::styled()
+    .header(styling::AnsiColor::Green.on_default().bold())
+    .usage(styling::AnsiColor::Green.on_default().bold())
+    .literal(styling::AnsiColor::Blue.on_default().bold())
+    .error(styling::AnsiColor::Red.on_default().bold())
+    .placeholder(styling::AnsiColor::Cyan.on_default());
 
 fn main() {
-    // check if `--help` flag is passed
-    if std::env::args().any(|arg| arg == "--help") {
-        println!(
-            "\n{} {} {}",
-            "Usage:".bold(),
-            "launcher".bold(),
-            "[flags]".bold()
-        );
-        println!("\n{}", "Flags:".bold());
-        println!(
-            "  {} {} {}",
-            "--port=<port>".green(),
-            "Port on which the vscode server will run".italic(),
-            "   [default: 6699]".yellow()
-        );
-        println!(
-            "  {} {} {}",
-            "--path=<path>".green(),
-            "Repository to launch in vscode".italic(),
-            "             [default: pwd]".yellow()
-        );
-        println!(
-            "  {} {} {}",
-            "--host=<host>".green(),
-            "Host on which the vscode server will run".italic(),
-            "   [default: 127.0.0.1]".yellow()
-        );
-        println!(
-            "  {} {} {}",
-            "--open".green(),
-            "       Launch vscode server in the default browser".italic(),
-            "[default: false]".yellow()
-        );
-        println!(
-            "  {} {}",
-            "--help".green(),
-            "       Print this help message".italic()
-        );
-
-        println!("\n{}", "Example:".bold());
-        println!(
-            "  {} {}",
-            "launcher".cyan(),
-            "--path=/path/to/repo --port=6699 --host=localhost --open".blue()
-        );
-        std::process::exit(0);
-    }
-
-    // parse the cli args
-    let flag_configs = &[
-        FlagConfig {
-            name: "--path",
-            default: Some("."),
-            required: false,
-        },
-        FlagConfig {
-            name: "--port",
-            default: Some("6699"),
-            required: false,
-        },
-        FlagConfig {
-            name: "--host",
-            default: Some("127.0.0.1"),
-            required: false,
-        },
-        FlagConfig {
-            name: "--open",
-            default: Some("false"),
-            required: false,
-        },
-    ];
-
-    let (open_arg, path_arg, port_arg, host_arg) = match parse_args(flag_configs) {
-        Ok((parsed_flags, _other_args)) => (
-            parsed_flags.get("--open").unwrap().clone(),
-            parsed_flags.get("--path").unwrap().clone(),
-            parsed_flags.get("--port").unwrap().clone(),
-            parsed_flags.get("--host").unwrap().clone(),
-        ),
-        Err(err) => {
-            eprintln!("\n{}", err.red());
-            std::process::exit(1);
-        }
-    };
+    let matches = Command::new("launcher")
+        .styles(STYLES)
+        .version("0.1.0")
+        .about("openvscode-server launcher")
+        .arg(
+            arg!(--port <VALUE> "Port to run the server on")
+                .required(false)
+                .default_value("6699"),
+        )
+        .arg(
+            arg!(--host <VALUE> "Host to run the server on")
+                .required(false)
+                .default_value("127.0.0.1"),
+        )
+        .arg(
+            arg!(--path <VALUE> "Repository to launch in VSCode")
+                .required(false)
+                .default_value("."),
+        )
+        .arg(
+            arg!(--open "Open the server in the browser")
+                .required(false)
+                .default_value("false"),
+        )
+        .get_matches();
 
     let mut command = std::process::Command::new("nix");
     command
         .arg("run")
+        // TODO: set in a way where we can change vscode server implementation easily
         .arg("github:nixos/nixpkgs/nixpkgs-unstable#openvscode-server")
         .arg("--")
-        .arg(format!("--port={}", port_arg))
-        .arg(format!("--host={}", host_arg))
+        .arg(format!(
+            "--port={}",
+            matches
+                .get_one::<String>("port")
+                .expect("port has a default value")
+        ))
+        .arg(format!(
+            "--host={}",
+            matches
+                .get_one::<String>("host")
+                .expect("host has a default value")
+        ))
         .args([
             "--update-extensions",
             "--disable-telemetry",
@@ -120,6 +71,8 @@ fn main() {
         .stderr(Stdio::piped())
         .spawn()
         .expect("Failed to spawn command");
+
+    child.wait().expect("Failed to wait for command");
 
     let child_stdout = child
         .stdout
@@ -134,25 +87,35 @@ fn main() {
 
     let wait_group = Arc::new(Mutex::new(()));
 
-    // This is where thread spawning begins
     let stdout_thread = thread::spawn(move || {
         let stdout_lines = BufReader::new(child_stdout).lines();
         for line in stdout_lines {
             let line = line.unwrap();
-            // if line doesn't start with "Web UI available at",continue
             if !line.starts_with("Web UI available at") {
                 continue;
             }
-            // extracting the `tkn` part
             let token = line.split("tkn=").collect::<Vec<&str>>()[1];
             let repo_vscode_url = format!(
                 "http://{}:{}?tkn={}&folder={}",
-                host_arg, port_arg, token, path_arg,
+                matches
+                    .get_one::<String>("host")
+                    .expect("host has a default value"),
+                matches
+                    .get_one::<String>("port")
+                    .expect("port has a default value"),
+                token,
+                matches
+                    .get_one::<String>("path")
+                    .expect("path has a default value"),
             );
 
             println!("\n{}", repo_vscode_url);
 
-            if open_arg == "true" {
+            if matches
+                .get_one::<String>("port")
+                .expect("port has default value")
+                == "true"
+            {
                 let _ = std::process::Command::new("xdg-open")
                     .arg(repo_vscode_url)
                     .spawn()
@@ -180,45 +143,4 @@ fn main() {
         eprintln!("stderr: {}", stderr);
         std::process::exit(1);
     }
-}
-
-fn parse_args(
-    flag_configs: &[FlagConfig],
-) -> Result<(HashMap<String, String>, Vec<String>), String> {
-    let args: Vec<String> = std::env::args().skip(1).collect();
-    let mut parsed_flags = HashMap::new();
-    let mut other_args = Vec::new();
-
-    // Initialize with defaults and check for required flags
-    for config in flag_configs {
-        if let Some(default) = config.default {
-            parsed_flags.insert(config.name.to_string(), default.to_string());
-        }
-    }
-
-    for arg in args {
-        let mut matched = false;
-        for config in flag_configs {
-            if arg.starts_with(&format!("{}=", config.name)) {
-                let value = arg
-                    .trim_start_matches(&format!("{}=", config.name))
-                    .to_string();
-                parsed_flags.insert(config.name.to_string(), value);
-                matched = true;
-                break;
-            }
-        }
-        if !matched {
-            other_args.push(arg);
-        }
-    }
-
-    // Check if all required flags are provided
-    for config in flag_configs {
-        if config.required && !parsed_flags.contains_key(config.name) {
-            return Err(format!("Required flag '{}' is missing", config.name));
-        }
-    }
-
-    Ok((parsed_flags, other_args))
 }
