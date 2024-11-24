@@ -1,5 +1,3 @@
-#![allow(unused_variables)]
-
 use std::{
     env,
     io::{BufRead, BufReader},
@@ -9,7 +7,18 @@ use std::{
 
 fn main() {
     let repository_absolute_path = env::var("REPOSITORY_ABSOLUTE_PATH").unwrap_or_else(|_| {
-        eprintln!("REPOSITORY_ABSOLUTE_PATH is empty. Set it to the absolute path of the repository by running `export REPOSITORY_ABSOLUTE_PATH=/path/to/repository`");
+        eprintln!(
+            "\n{}\n{}\n\n{}",
+            colorize("REPOSITORY_ABSOLUTE_PATH is empty.", "red"),
+            colorize(
+                "Set it to the absolute path of the repository by running:",
+                "yellow"
+            ),
+            colorize(
+                "export REPOSITORY_ABSOLUTE_PATH=/path/to/repository",
+                "green"
+            )
+        );
         std::process::exit(1);
     });
 
@@ -41,7 +50,7 @@ fn main() {
         .take()
         .expect("Internal error, could not take stderr");
 
-    let (stdout_tx, stdout_rx) = std::sync::mpsc::channel();
+    let (stdout_tx, _) = std::sync::mpsc::channel();
     let (stderr_tx, stderr_rx) = std::sync::mpsc::channel();
 
     let stdout_thread = thread::spawn(move || {
@@ -67,7 +76,6 @@ fn main() {
             if args.len() > 1 && args[1] == "--open" {
                 println!("Opening the vscode url in the default browser...");
                 // open the vscode url in the default browser
-                // `xdg-open $repo_vscode_url`
                 let _ = std::process::Command::new("open")
                     .arg(repo_vscode_url)
                     .output()
@@ -87,21 +95,26 @@ fn main() {
         }
     });
 
-    let status = child
-        .wait()
-        .expect("Internal error, failed to wait on child");
-
     stdout_thread.join().unwrap();
     stderr_thread.join().unwrap();
 
-    let stdout = stdout_rx.into_iter().collect::<Vec<String>>().join("");
     let stderr = stderr_rx.into_iter().collect::<Vec<String>>().join("");
     // if stderr is not empty, print it and exit
     if !stderr.is_empty() {
         eprintln!("stderr: {}", stderr);
         std::process::exit(1);
     }
-    println!("Hello, world!");
-    println!("status: {}", status);
-    println!("stdout: {}", stdout);
+}
+
+fn colorize(text: &str, color: &str) -> String {
+    let color_code = match color.to_lowercase().as_str() {
+        "red" => "31",
+        "green" => "32",
+        "yellow" => "33",
+        "blue" => "34",
+        "magenta" => "35",
+        "cyan" => "36",
+        _ => "0", // default to no color
+    };
+    format!("\x1b[1;{}m{}\x1b[0m", color_code, text)
 }
