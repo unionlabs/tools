@@ -1,0 +1,17 @@
+
+[workspace]
+resolver = "2"
+
+members = [
+  #
+  "launcher",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+repository = "https://github.com/unionlabs/tools"
+
+[workspace.lints.rust]
+
+[workspace.lints.clippy]
