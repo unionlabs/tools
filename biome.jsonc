@@ -6,8 +6,13 @@
     "useIgnoreFile": true
   },
   "files": {
-    "include": ["*.json", "*.jsonc"],
-    "ignore": ["/nix/store/*"]
+    "include": [
+      "*.json",
+      "*.jsonc"
+    ],
+    "ignore": [
+      "/nix/store/*"
+    ]
   },
   "formatter": {
     "enabled": true,
@@ -31,7 +36,11 @@
       "allowTrailingCommas": true
     },
     "formatter": {
-      "enabled": true
+      // hack in order to have one item per line in json/jsonc files
+      "lineWidth": 1,
+      "enabled": true,
+      "indentWidth": 2,
+      "indentStyle": "space"
     }
   }
 }

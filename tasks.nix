@@ -11,6 +11,15 @@
     cargo clippy --all-targets --all-features -- -A clippy::pedantic
     deadnix --no-lambda-pattern-names && statix check .
   '';
+  spellcheck.exec = ''
+    typos
+  '';
+  precommit.exec = ''
+    fmt
+    lint
+    spellcheck
+    build-all
+  '';
   # options:
   # $WORKSPACE
   build.exec = ''

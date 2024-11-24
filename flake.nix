@@ -27,7 +27,6 @@
       packages = forEachSystem (system: {
         devenv-up = self.devShells.${system}.default.config.procfileScript;
         packages.${system}.devenv-test = self.devShells.${system}.default.config.test;
-
       });
       devShells = forEachSystem (
         system:
@@ -40,7 +39,9 @@
             inherit inputs pkgs;
             modules = [
               {
-                enterShell = '''';
+                enterShell = ''
+                  echo ""
+                '';
 
                 # https://devenv.sh/reference/options/
                 scripts = import ./tasks.nix;
@@ -73,6 +74,7 @@
                   direnv
                   deadnix
                   nixfmt-rfc-style
+                  # Node.js for taplo
                   nodePackages_latest.nodejs
                 ];
               }
@@ -86,5 +88,4 @@
     extra-substituters = "https://devenv.cachix.org";
     extra-trusted-public-keys = "devenv.cachix.org-1:w1cLUi8dv3hnoSPGAuibQv+f9TZLr6cv/Hm9XgU50cw=";
   };
-
 }
