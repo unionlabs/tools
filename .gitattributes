@@ -1,4 +1,5 @@
 * text=auto
 .gitattributes !filter !diff
 
+biome.json linguist-language=JSON-with-Comments
 .vscode/*.json linguist-language=JSON-with-Comments

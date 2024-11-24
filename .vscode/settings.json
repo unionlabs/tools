@@ -7,10 +7,7 @@
   "nix.serverSettings": {
     "nixd": {
       "formatting": {
-        "command": [
-          "nixfmt",
-          "--width=100"
-        ]
+        "command": ["nixfmt", "--width=100"]
       }
     }
   },
@@ -26,10 +23,8 @@
     "editor.defaultFormatter": "tamasfe.even-better-toml"
   },
   "evenBetterToml.schema.enabled": true,
-  "files.exclude": {
-    "result": true,
-    ".direnv": true,
-    ".devenv*": true,
+  "files.associations": {
+    "biome.json": "jsonc"
   },
   /* font */
   "editor.fontSize": 14,
@@ -50,6 +45,11 @@
     "**/result": true,
     "**/.direnv": true,
     "**/flake.lock": true
+  },
+  "files.exclude": {
+    "result": true,
+    ".direnv": true,
+    ".devenv*": true
   },
   /**
    * various opinionated UI and UX settings

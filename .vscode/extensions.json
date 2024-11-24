@@ -1,31 +1,31 @@
 {
-	"unwantedRecommendations": [],
-	"recommendations": [
-		/* nix dev shell */
-		"bbenoist.nix",
-		"jnoortheen.nix-ide",
-		"bmalehorn.vscode-fish",
-		"arrterian.nix-env-selector",
-		/* lint & format */
-		"biomejs.biome",
-		"timonwong.shellcheck",
-		/* rust */
-		"fill-labs.dependi",
-		"rust-lang.rust-analyzer",
-		/* git & github */
-		"mk12.better-git-line-blame",
-		"antfu.open-in-github-button",
-		"github.vscode-github-actions",
-		"christian-kohler.path-intellisense",
-		/* theme */
-		"catppuccin.catppuccin-vsc",
-		"pkief.material-icon-theme",
-		/* syntax */
-		"mikestead.dotenv",
-		"redhat.vscode-yaml",
-		"hashhar.gitattributes",
-		"tamasfe.even-better-toml",
-		"yzhang.markdown-all-in-one",
-		"jeff-hykin.better-shellscript-syntax"
-	]
+  "unwantedRecommendations": [],
+  "recommendations": [
+    /* nix dev shell */
+    "bbenoist.nix",
+    "jnoortheen.nix-ide",
+    "bmalehorn.vscode-fish",
+    "arrterian.nix-env-selector",
+    /* lint & format */
+    "biomejs.biome",
+    "timonwong.shellcheck",
+    /* rust */
+    "fill-labs.dependi",
+    "rust-lang.rust-analyzer",
+    /* git & github */
+    "mk12.better-git-line-blame",
+    "antfu.open-in-github-button",
+    "github.vscode-github-actions",
+    "christian-kohler.path-intellisense",
+    /* theme */
+    "catppuccin.catppuccin-vsc",
+    "pkief.material-icon-theme",
+    /* syntax */
+    "mikestead.dotenv",
+    "redhat.vscode-yaml",
+    "hashhar.gitattributes",
+    "tamasfe.even-better-toml",
+    "yzhang.markdown-all-in-one",
+    "jeff-hykin.better-shellscript-syntax"
+  ]
 }
