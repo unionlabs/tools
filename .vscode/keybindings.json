@@ -1,0 +1,125 @@
+[
+  {
+    "key": "cmd+;",
+    "command": "editor.action.goToDeclaration"
+  },
+  {
+    "key": "cmd+alt+i",
+    "command": "workbench.action.terminal.toggleTerminal"
+  },
+  {
+    "key": "shift+cmd+;",
+    "command": "workbench.action.navigateBack",
+    "when": "canNavigateBack"
+  },
+  {
+    "key": "alt+left",
+    "command": "workbench.action.terminal.sendSequence",
+    "args": {
+      "text": "\u001b[1;5D" // cursor one word left
+    },
+    "when": "terminalFocus"
+  },
+  {
+    "key": "alt+right",
+    "command": "workbench.action.terminal.sendSequence",
+    "args": {
+      "text": "\u001b[1;5C" // cursor one word right
+    },
+    "when": "terminalFocus"
+  },
+  {
+    "key": "alt+up",
+    "command": "workbench.action.terminal.scrollToTop",
+    "when": "terminalFocus"
+  },
+  {
+    "key": "alt+down",
+    "command": "workbench.action.terminal.scrollToBottom",
+    "when": "terminalFocus"
+  },
+  {
+    "key": "alt+right",
+    "command": "editor.action.inlineSuggest.showNext",
+    "when": "textInputFocus && inlineSuggestionVisible"
+  },
+  {
+    "key": "alt+left",
+    "command": "editor.action.inlineSuggest.showPrevious",
+    "when": "inlineSuggestionVisible && textInputFocus"
+  },
+  {
+    "key": "alt+down",
+    "command": "editor.action.triggerSuggest",
+    "when": "editorHasCompletionItemProvider && textInputFocus && !editorReadonly && !suggestWidgetVisible && inlineSuggestionVisible"
+  },
+  // cmd+k clear terminal
+  {
+    "key": "cmd+k",
+    "command": "workbench.action.terminal.clear"
+  },
+  // cmd+shift+enter open terminal
+  {
+    "key": "cmd+shift+enter",
+    "command": "workbench.action.terminal.toggleTerminal"
+  },
+  {
+    "key": "cmd+shift+backspace",
+    "command": "workbench.action.terminal.kill"
+  },
+  {
+    "key": "ctrl+]",
+    "command": "ctrl+]",
+    "when": "editor.action.inlineSuggest.showNext"
+  },
+  {
+    "key": "shift+cmd+r",
+    "command": "-extension.vsKubernetesDescribe.Refresh",
+    "when": "vscodeKubernetesDescribeContext"
+  },
+  {
+    "key": "ctrl+c",
+    "command": "copilot-labs.use-brush-picker",
+    "when": "editorTextFocus"
+  },
+  {
+    "key": "ctrl+b",
+    "command": "-copilot-labs.use-brush-picker",
+    "when": "editorTextFocus"
+  },
+  {
+    "key": "alt+up",
+    "command": "-workbench.action.terminal.accessibleBufferGoToPreviousCommand",
+    "when": "accessibilityModeEnabled && terminalAccessibleBufferFocus && terminalHasBeenCreated || accessibilityModeEnabled && terminalAccessibleBufferFocus && terminalProcessSupported"
+  },
+  {
+    "key": "alt+down",
+    "command": "-workbench.action.terminal.accessibleBufferGoToNextCommand",
+    "when": "accessibilityModeEnabled && terminalAccessibleBufferFocus || accessibilityModeEnabled && terminalAccessibleBufferFocus && terminalHasBeenCreated || accessibilityModeEnabled && terminalAccessibleBufferFocus && terminalProcessSupported"
+  },
+  {
+    "key": "cmd+r",
+    "command": "-python.refreshTensorBoard",
+    "when": "python.hasActiveTensorBoardSession"
+  },
+  {
+    "key": "cmd+r",
+    "command": "-workbench.action.terminal.runRecentCommand",
+    "when": "accessibilityModeEnabled && terminalFocus && terminalHasBeenCreated || accessibilityModeEnabled && terminalFocus && terminalProcessSupported || accessibilityModeEnabled && accessibleViewIsShown && terminalHasBeenCreated && accessibleViewCurrentProviderId == 'terminal' || accessibilityModeEnabled && accessibleViewIsShown && terminalProcessSupported && accessibleViewCurrentProviderId == 'terminal'"
+  },
+  {
+    "key": "cmd+r",
+    "command": "-workbench.action.reloadWindow",
+    "when": "isDevelopment"
+  },
+  {
+    "key": "cmd+r",
+    "command": "renameFile",
+    "when": "filesExplorerFocus && foldersViewVisible && !explorerResourceIsRoot && !explorerResourceReadonly && !inputFocus"
+  },
+  {
+    "key": "enter",
+    "command": "-renameFile",
+    "when": "filesExplorerFocus && foldersViewVisible && !explorerResourceIsRoot && !explorerResourceReadonly && !inputFocus"
+  }
+]

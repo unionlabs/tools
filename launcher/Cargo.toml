@@ -1,9 +1,11 @@
+cargo-features = ["edition2024"]
+
 [package]
-edition.workspace = true
-repository.workspace = true
 name = "launcher"
 version = "0.1.0"
 description = "Launches vscode server in the browser"
+edition.workspace = true
+repository.workspace = true
 
 [dependencies]
 

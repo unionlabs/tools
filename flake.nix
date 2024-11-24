@@ -26,6 +26,8 @@
     {
       packages = forEachSystem (system: {
         devenv-up = self.devShells.${system}.default.config.procfileScript;
+        packages.${system}.devenv-test = self.devShells.${system}.default.config.test;
+
       });
       devShells = forEachSystem (
         system:
@@ -49,6 +51,7 @@
                   channel = "nightly";
                   targets = [ ];
                   components = [
+                    "miri"
                     "rustc"
                     "cargo"
                     "clippy"
