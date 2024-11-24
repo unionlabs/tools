@@ -72,8 +72,6 @@ fn main() {
         .spawn()
         .expect("Failed to spawn command");
 
-    child.wait().expect("Failed to wait for command");
-
     let child_stdout = child
         .stdout
         .take()
