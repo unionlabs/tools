@@ -71,6 +71,7 @@
   "editor.inlayHints.padding": false,
   "editor.overviewRulerBorder": false,
   "editor.suggest.showModules": false,
+  "workbench.startupEditor": "readme",
   "explorer.openEditors.minVisible": 0,
   "diffEditor.renderGutterMenu": false,
   "diffEditor.renderIndicators": false,

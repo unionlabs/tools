@@ -6,6 +6,8 @@ use std::{
     thread,
 };
 
+use colored::Colorize;
+
 #[derive(Debug)]
 struct FlagConfig<'a> {
     name: &'a str,
@@ -17,52 +19,47 @@ fn main() {
     // check if `--help` flag is passed
     if std::env::args().any(|arg| arg == "--help") {
         println!(
-            "\n{0} {1} {2}",
-            text_effect("Usage:", "bold"),
-            text_effect("launcher", "bold"),
-            text_effect("[flags]", "bold")
+            "\n{} {} {}",
+            "Usage:".bold(),
+            "launcher".bold(),
+            "[flags]".bold()
         );
-        println!("\n{0}", text_effect("Flags:", "bold"));
+        println!("\n{}", "Flags:".bold());
         println!(
-            "  {0} {1} {2}",
-            text_effect("--port=<port>", "green"),
-            text_effect(" Port on which the vscode server will run", "italic"),
-            text_effect("    [default: 6699]", "yellow")
-        );
-        println!(
-            "  {0} {1} {2}",
-            text_effect("--path=<path>", "green"),
-            text_effect(" Repository to launch in vscode", "italic"),
-            text_effect("              [default: pwd]", "yellow")
+            "  {} {} {}",
+            "--port=<port>".green(),
+            "Port on which the vscode server will run".italic(),
+            "   [default: 6699]".yellow()
         );
         println!(
-            "  {0} {1} {2}",
-            text_effect("--host=<host>", "green"),
-            text_effect(" Host on which the vscode server will run", "italic"),
-            text_effect("    [default: 127.0.0.1]", "yellow")
+            "  {} {} {}",
+            "--path=<path>".green(),
+            "Repository to launch in vscode".italic(),
+            "             [default: pwd]".yellow()
         );
         println!(
-            "  {0} {1} {2}",
-            text_effect("--open", "green"),
-            text_effect(
-                "        Launch vscode server in the default browser",
-                "italic"
-            ),
-            text_effect(" [default: false]", "yellow")
+            "  {} {} {}",
+            "--host=<host>".green(),
+            "Host on which the vscode server will run".italic(),
+            "   [default: 127.0.0.1]".yellow()
         );
         println!(
-            "  {0} {1}",
-            text_effect("--help", "green"),
-            text_effect("        Print this help message", "italic")
+            "  {} {} {}",
+            "--open".green(),
+            "       Launch vscode server in the default browser".italic(),
+            "[default: false]".yellow()
         );
-        println!("\n{0}", text_effect("Example:", "bold"));
         println!(
-            "  {0} {1}",
-            text_effect("launcher", "cyan"),
-            text_effect(
-                "--path=/path/to/repo --port=6699 --host=localhost --open",
-                "blue"
-            )
+            "  {} {}",
+            "--help".green(),
+            "       Print this help message".italic()
+        );
+
+        println!("\n{}", "Example:".bold());
+        println!(
+            "  {} {}",
+            "launcher".cyan(),
+            "--path=/path/to/repo --port=6699 --host=localhost --open".blue()
         );
         std::process::exit(0);
     }
@@ -99,7 +96,7 @@ fn main() {
             parsed_flags.get("--host").unwrap().clone(),
         ),
         Err(err) => {
-            eprintln!("\n{}", text_effect(&err, "red"));
+            eprintln!("\n{}", err.red());
             std::process::exit(1);
         }
     };
@@ -111,7 +108,7 @@ fn main() {
         .arg("--")
         .arg(format!("--port={}", port_arg))
         .arg(format!("--host={}", host_arg))
-        .args(&[
+        .args([
             "--update-extensions",
             "--disable-telemetry",
             "--accept-server-license-terms",
@@ -143,7 +140,7 @@ fn main() {
         for line in stdout_lines {
             let line = line.unwrap();
             // if line doesn't start with "Web UI available at",continue
-            if line.starts_with("Web UI available at") == false {
+            if !line.starts_with("Web UI available at") {
                 continue;
             }
             // extracting the `tkn` part
@@ -159,7 +156,8 @@ fn main() {
                 let _ = std::process::Command::new("xdg-open")
                     .arg(repo_vscode_url)
                     .spawn()
-                    .expect("Failed to open browser");
+                    .expect("Failed to open browser")
+                    .wait();
             }
         }
     });
@@ -223,25 +221,4 @@ fn parse_args(
     }
 
     Ok((parsed_flags, other_args))
-}
-
-fn text_effect(text: &str, effect: &str) -> String {
-    let effect_code = match effect.to_lowercase().as_str() {
-        "red" => "31",
-        "green" => "32",
-        "yellow" => "33",
-        "blue" => "34",
-        "magenta" => "35",
-        "cyan" => "36",
-        "white" => "37",
-        "bold" => "1",
-        "italic" => "3",
-        "underline" => "4",
-        "blink" => "5",
-        "inverse" => "7",
-        "hidden" => "8",
-        "strikethrough" => "9",
-        _ => "0", // default to no color
-    };
-    format!("\x1b[1;{}m{}\x1b[0m", effect_code, text)
 }
