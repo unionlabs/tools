@@ -33,8 +33,6 @@
   "editor.fontSize": 14,
   "editor.fontLigatures": true,
   "terminal.integrated.fontSize": 14,
-  "editor.fontFamily": "BlexMono Nerd Font Mono",
-  "terminal.integrated.fontFamily": "BlexMono Nerd Font Mono",
   /* theme and icon settings */
   "workbench.colorTheme": "Catppuccin Mocha",
   "workbench.iconTheme": "material-icon-theme",
