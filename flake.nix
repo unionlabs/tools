@@ -1,8 +1,7 @@
 {
   description = "Union Labs Development Tools";
   inputs = {
-
-    nixpkgs.url = "github:nixos/nixpkgs?ref=nixos-unstable";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
     systems.url = "github:nix-systems/default";
 
     devenv.url = "github:cachix/devenv";
@@ -24,10 +23,23 @@
       forEachSystem = nixpkgs.lib.genAttrs (import systems);
     in
     {
-      packages = forEachSystem (system: {
-        devenv-up = self.devShells.${system}.default.config.procfileScript;
-        packages.${system}.devenv-test = self.devShells.${system}.default.config.test;
-      });
+      packages = forEachSystem (
+        system:
+        let
+          pkgs = import nixpkgs { inherit system; };
+        in
+        {
+          devenv-up = self.devShells.${system}.default.config.procfileScript;
+          packages.${system}.devenv-test = self.devShells.${system}.default.config.test;
+          code = pkgs.writeShellApplication {
+            name = "code";
+            runtimeInputs = [ pkgs.openvscode-server ];
+            text = ''
+              openvscode-server --update-extensions --disable-telemetry --disable-telemetry --accept-server-license-terms --start-server "$@"
+            '';
+          };
+        }
+      );
       devShells = forEachSystem (
         system:
         let
