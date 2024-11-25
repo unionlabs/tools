@@ -5,10 +5,10 @@ name = "launcher"
 version.workspace = true
 edition.workspace = true
 repository.workspace = true
-description = "Full fledged VSCode with everything you need to ship"
+description = "Quintessential development environment - powered by Open VSCode & VSX"
 
 [lints]
 workspace = true
 
 [dependencies]
-clap = { version = "4.5.21", features = ["derive", "cargo"]  }
+clap = { version = "4.5.21", features = ["derive", "cargo"] }
