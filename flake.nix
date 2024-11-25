@@ -9,6 +9,13 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    flake-utils.url = "github:numtide/flake-utils";
+
+    flake-parts = {
+      url = "github:hercules-ci/flake-parts";
+      inputs.nixpkgs-lib.follows = "nixpkgs";
+    };
+
     fenix = {
       url = "github:nix-community/fenix";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -19,20 +26,9 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    crane = {
-      url = "github:ipetkov/crane";
-      inputs = {
-        flake-utils.follows = "flake-utils";
-        nixpkgs.follows = "nixpkgs";
-      };
-    };
+    crane.url = "github:ipetkov/crane";
 
-    flake-parts.url = "github:hercules-ci/flake-parts";
-
-    flake-utils.url = "github:numtide/flake-utils";
-
-    advisory-db.url = "github:rustsec/advisory-db";
-    advisory-db.flake = false;
+    treefmt-nix.url = "github:numtide/treefmt-nix";
   };
 
   outputs =
@@ -43,29 +39,32 @@
       devenv,
       nixpkgs,
       flake-utils,
-      advisory-db,
       rust-overlay,
       ...
     }@inputs:
+
     flake-utils.lib.eachDefaultSystem (
       system:
       let
-        pkgs = import nixpkgs { inherit system; };
+        pkgs = import nixpkgs {
+          inherit system;
+          overlays = [ (import rust-overlay) ];
+        };
         inherit (pkgs) lib;
         /**
-          crane setup start
-          this follows crane's official "workspace" guide
-          https://crane.dev/examples/quick-start-workspace.html
+          - crane setup start
+            this follows crane's official "workspace" guide
+            https://crane.dev/examples/quick-start-workspace.html
+          - in order to use rust nightly, we use fenix to override the toolchain
+            https://github.com/nix-community/fenix#examples
         */
         craneLib = (crane.mkLib pkgs).overrideToolchain fenix.packages.${system}.minimal.toolchain;
-
         src = craneLib.cleanCargoSource ./.;
 
         # Common arguments can be set here to avoid repeating them later
         commonArgs = {
           inherit src;
           strictDeps = true;
-
           buildInputs =
             [
               # Add additional build inputs here
@@ -74,13 +73,9 @@
               # Additional darwin specific inputs can be set here
               pkgs.libiconv
             ];
-
-          # Additional environment variables can be set directly
-          # MY_CUSTOM_VAR = "some value";
+          ZKGM = "ZKGM";
         };
 
-        # in order to use rust nightly, we use fenix to override the toolchain
-        # https://github.com/nix-community/fenix#examples
         craneLibLLvmTools = craneLib.overrideToolchain (
           fenix.packages.${system}.complete.withComponents [
             "cargo"
@@ -119,9 +114,9 @@
         launcher = craneLib.buildPackage (
           individualCrateArgs
           // {
-            pname = (lib.importTOML ./launcher/Cargo.toml).package.name;
+            pname = (lib.importTOML ./crates/launcher/Cargo.toml).package.name;
             cargoExtraArgs = "--workspace";
-            src = fileSetForCrate ./launcher;
+            src = fileSetForCrate ./crates/launcher;
           }
         );
       in
@@ -143,23 +138,14 @@
               inherit cargoArtifacts;
             }
           );
-
-          my-workspace-fmt = craneLib.cargoFmt {
-            inherit src;
-          };
-
-          my-workspace-toml-fmt = craneLib.taploFmt {
-            src = pkgs.lib.sources.sourceFilesBySuffices src [ ".toml" ];
-            # taplo arguments can be further customized below as needed
-            # taploExtraArgs = "--config ./taplo.toml";
-          };
-
           # TODO: add cargo-hakari and cargo-nextest
         };
 
         packages =
           {
             inherit launcher;
+            devenv-test = self.devShells.${system}.default.config.test;
+            devenv-up = self.devShells.${system}.default.config.procfileScript;
           }
           // lib.optionalAttrs (!pkgs.stdenv.isDarwin) {
             my-workspace-llvm-coverage = craneLibLLvmTools.cargoLlvmCov (
@@ -168,22 +154,25 @@
                 inherit cargoArtifacts;
               }
             );
+
+            ucode = pkgs.writeShellApplication {
+              name = "ucode";
+              runtimeInputs = [
+                self.packages.${system}.launcher
+              ];
+              text = ''
+                launcher "$@"
+              '';
+            };
           };
+
         apps = {
           launcher = flake-utils.lib.mkApp {
             drv = launcher;
           };
         };
 
-        ucode = pkgs.writeShellApplication {
-          name = "ucode";
-          runtimeInputs = [ pkgs.openvscode-server ];
-          text = ''
-            openvscode-server --update-extensions --disable-telemetry --disable-telemetry --accept-server-license-terms --start-server "$@"
-          '';
-        };
-        devenv-test = self.devShells.${system}.default.config.test;
-        devenv-up = self.devShells.${system}.default.config.procfileScript;
+        # devenv https://devenv.sh
         devShells.default = devenv.lib.mkShell {
           inherit inputs pkgs;
           modules = [

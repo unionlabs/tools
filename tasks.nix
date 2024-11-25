@@ -1,6 +1,6 @@
 {
   fmt.exec = ''
-    taplo fmt *.toml
+    taplo fmt *.tomil
     nixfmt *.nix --width=100
     biome format . --write
     cargo fmt --all -- --config-path=rustfmt.toml
@@ -19,6 +19,12 @@
     lint
     spellcheck
     build-all
+  '';
+  build-crane.exec = ''
+    nix build .#launcher --accept-flake-config
+  '';
+  ucode.exec = ''
+    nix run .#ucode -- "$@"
   '';
   # options:
   # $WORKSPACE

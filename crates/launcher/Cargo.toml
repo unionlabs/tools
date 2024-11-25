@@ -5,10 +5,10 @@ name = "launcher"
 version.workspace = true
 edition.workspace = true
 repository.workspace = true
-description = "Launches vscode server in the browser"
-
-[dependencies]
-clap = { version = "4.5.21", features = ["derive", "cargo"] }
+description = "Full fledged VSCode with everything you need to ship"
 
 [lints]
 workspace = true
+
+[dependencies]
+clap = { version = "4.5.21", features = ["derive", "cargo"]  }

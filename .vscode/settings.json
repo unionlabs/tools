@@ -25,6 +25,8 @@
   "[toml]": {
     "editor.defaultFormatter": "tamasfe.even-better-toml"
   },
+  "rust-analyzer.cargo.features": "all",
+  "rust-analyzer.check.command": "clippy",
   "evenBetterToml.schema.enabled": true,
   "files.associations": {
     "biome.json": "jsonc"

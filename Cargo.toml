@@ -1,17 +1,16 @@
-
-[workspace]
-resolver = "2"
-members = [
-  #
-  "launcher",
-]
-
 [workspace.package]
 version = "0.1.0"
 edition = "2024"
 repository = "https://github.com/unionlabs/tools"
 
-[workspace.lints.rust]
+[workspace]
+resolver = "2"
+members = ["crates/*"]
+
+[workspace.lints]
+rust.unreachable_pub = "warn"
+rust.unused_must_use = "deny"
+
 [workspace.lints.clippy]
 
 [workspace.metadata.crane]
