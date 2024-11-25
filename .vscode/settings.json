@@ -48,6 +48,7 @@
     "**/flake.lock": true
   },
   "files.exclude": {
+    "._*": true,
     "result": true,
     ".direnv": true,
     ".devenv*": true
