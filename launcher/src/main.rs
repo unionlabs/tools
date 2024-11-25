@@ -5,7 +5,7 @@ use std::{
     thread,
 };
 
-use clap::{Command, arg, builder::styling};
+use clap::{Command, arg, builder::styling, crate_description, crate_name, crate_version};
 
 const STYLES: styling::Styles = styling::Styles::styled()
     .header(styling::AnsiColor::Green.on_default().bold())
@@ -15,10 +15,10 @@ const STYLES: styling::Styles = styling::Styles::styled()
     .placeholder(styling::AnsiColor::Cyan.on_default());
 
 fn main() {
-    let matches = Command::new("launcher")
+    let matches = Command::new(crate_name!())
         .styles(STYLES)
-        .version("0.1.0")
-        .about("openvscode-server launcher")
+        .version(crate_version!())
+        .about(crate_description!())
         .arg(
             arg!(--port <VALUE> "Port to run the server on")
                 .required(false)

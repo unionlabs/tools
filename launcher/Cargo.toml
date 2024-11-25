@@ -2,13 +2,13 @@ cargo-features = ["edition2024"]
 
 [package]
 name = "launcher"
-version = "0.1.0"
+version.workspace = true
 edition.workspace = true
 repository.workspace = true
 description = "Launches vscode server in the browser"
 
 [dependencies]
-clap = { version = "4.5.21", features = ["derive"] }
+clap = { version = "4.5.21", features = ["derive", "cargo"] }
 
 [lints]
 workspace = true

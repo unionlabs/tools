@@ -6,14 +6,15 @@
 ### Launch `openvscode-server` editor
 
 ```md
-Usage: launcher [flags]
+Usage: launcher [OPTIONS]
 
-Flags:
-  --port=<port>  Port on which the vscode server will run     [default: 6699]
-  --path=<path>  Repository to launch in vscode               [default: pwd]
-  --host=<host>  Host on which the vscode server will run     [default: 127.0.0.1]
-  --open         Launch vscode server in the default browser  [default: false]
-  --help         Print this help message
+Options:
+    --port  <VALUE>  Port to run the server on [default: 6699]
+    --host  <VALUE>  Host to run the server on [default: 127.0.0.1]
+    --path  <VALUE>  Repository to launch in VSCode [default: .]
+    --open          Open the server in the browser
+-h, --help          Print help
+-V, --version       Print version
 
 Example:
   launcher --path=/path/to/repo --port=6699 --host=localhost --open
