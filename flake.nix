@@ -31,7 +31,7 @@
         {
           devenv-up = self.devShells.${system}.default.config.procfileScript;
           packages.${system}.devenv-test = self.devShells.${system}.default.config.test;
-          code = pkgs.writeShellApplication {
+          ucode = pkgs.writeShellApplication {
             name = "code";
             runtimeInputs = [ pkgs.openvscode-server ];
             text = ''
