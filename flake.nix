@@ -32,7 +32,7 @@
           devenv-up = self.devShells.${system}.default.config.procfileScript;
           packages.${system}.devenv-test = self.devShells.${system}.default.config.test;
           ucode = pkgs.writeShellApplication {
-            name = "code";
+            name = "ucode";
             runtimeInputs = [ pkgs.openvscode-server ];
             text = ''
               openvscode-server --update-extensions --disable-telemetry --disable-telemetry --accept-server-license-terms --start-server "$@"
