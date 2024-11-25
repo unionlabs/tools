@@ -142,6 +142,15 @@
         packages =
           {
             inherit launcher;
+            ucode = pkgs.writeShellApplication {
+              name = "ucode";
+              runtimeInputs = [
+                self.packages.${system}.launcher
+              ];
+              text = ''
+                launcher "$@"
+              '';
+            };
             devenv-test = self.devShells.${system}.default.config.test;
             devenv-up = self.devShells.${system}.default.config.procfileScript;
           }
@@ -152,21 +161,14 @@
                 inherit cargoArtifacts;
               }
             );
-
-            ucode = pkgs.writeShellApplication {
-              name = "ucode";
-              runtimeInputs = [
-                self.packages.${system}.launcher
-              ];
-              text = ''
-                launcher "$@"
-              '';
-            };
           };
 
         apps = {
           launcher = flake-utils.lib.mkApp {
             drv = launcher;
+          };
+          ucode = flake-utils.lib.mkApp {
+            drv = self.packages.${system}.ucode;
           };
         };
 
