@@ -7,3 +7,4 @@ devenv.local.nix
 _
 .env
 !.env.example
+result
