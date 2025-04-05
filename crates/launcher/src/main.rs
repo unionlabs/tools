@@ -110,8 +110,8 @@ fn main() {
             println!("\n{}", repo_vscode_url);
 
             if matches
-                .get_one::<String>("port")
-                .expect("port has default value")
+                .get_one::<String>("open")
+                .expect("open has a default value")
                 == "true"
             {
                 let _ = std::process::Command::new("xdg-open")
